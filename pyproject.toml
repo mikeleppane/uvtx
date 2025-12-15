@@ -1,6 +1,6 @@
 [project]
 name = "uvtx"
-version = "0.1.0"
+version = "0.2.0"
 description = "A modern Python task runner built for uv with profiles, inheritance, and PEP 723 support"
 readme = "README.md"
 requires-python = ">=3.10"
@@ -110,10 +110,7 @@ asyncio_default_fixture_loop_scope = "function"
 [tool.coverage.run]
 branch = true
 source = ["src/uvtx"]
-omit = [
-    "*/tests/*",
-    "*/__main__.py",
-]
+omit = ["*/tests/*", "*/__main__.py"]
 
 [tool.coverage.report]
 exclude_lines = [
