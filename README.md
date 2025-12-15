@@ -1338,6 +1338,160 @@ aliases = ["pc"]
 uvtx run pre-commit || exit 1
 ```
 
+### Pre-commit Framework Integration
+
+uvtx integrates with the [pre-commit](https://pre-commit.com/) framework, allowing you to run quality checks automatically before every commit.
+
+#### Recommended Setup
+
+Define a single task that runs all your quality checks, then reference it in your pre-commit configuration:
+
+**`uvtx.toml`:**
+
+```toml
+[project]
+name = "my-project"
+
+[tasks.format]
+description = "Format code"
+cmd = "ruff format src/ tests/"
+dependencies = ["ruff"]
+
+[tasks.lint]
+description = "Lint code"
+cmd = "ruff check src/ tests/"
+dependencies = ["ruff"]
+
+[tasks.typecheck]
+description = "Type check code"
+cmd = "mypy src/"
+dependencies = ["mypy"]
+
+[tasks.test-unit]
+description = "Run unit tests"
+cmd = "pytest tests/unit -x"  # -x = stop on first failure
+dependencies = ["pytest"]
+
+# Single task that runs all quality checks in parallel
+[tasks.verify]
+description = "Run all quality checks (format, lint, typecheck, test)"
+depends_on = ["format", "lint", "typecheck", "test-unit"]
+parallel = true
+```
+
+**`.pre-commit-config.yaml`:**
+
+```yaml
+repos:
+  # Run all uvtx quality checks in one hook
+  - repo: local
+    hooks:
+      - id: uvtx-verify
+        name: Code quality checks (format, lint, typecheck, test)
+        entry: uvtx run verify
+        language: system
+        pass_filenames: false
+        types: [python]
+
+  # Standard file checks
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.5.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-toml
+```
+
+**Setup:**
+
+```bash
+pip install pre-commit
+pre-commit install
+```
+
+Now every commit will automatically run format, lint, typecheck, and unit tests in parallel. If any check fails, the commit is blocked.
+
+#### Alternative: Tag-Based Filtering
+
+Use tags to organize which checks run in different contexts:
+
+```toml
+[tasks.format]
+cmd = "ruff format src/ tests/"
+tags = ["quality", "fast"]
+
+[tasks.lint]
+cmd = "ruff check src/ tests/"
+tags = ["quality", "fast"]
+
+[tasks.typecheck]
+cmd = "mypy src/"
+tags = ["quality"]
+
+[tasks.test-unit]
+cmd = "pytest tests/unit -x"
+tags = ["testing", "fast"]
+
+[tasks.test-integration]
+cmd = "pytest tests/integration"
+tags = ["testing", "slow", "ci-only"]
+```
+
+```yaml
+repos:
+  - repo: local
+    hooks:
+      - id: uvtx-fast-checks
+        name: Fast quality checks
+        entry: uvtx multi --tag fast --parallel
+        language: system
+        pass_filenames: false
+        types: [python]
+```
+
+This runs all tasks tagged with `fast` (format, lint, test-unit) but skips slower checks like integration tests.
+
+#### Profile-Specific Behavior
+
+Use profiles to adjust strictness or behavior in different environments:
+
+```toml
+[tasks.lint]
+cmd = "ruff check src/ tests/"
+dependencies = ["ruff"]
+
+[profiles.strict]
+env = { RUFF_OUTPUT_FORMAT = "full" }
+
+[tasks.verify]
+description = "Run quality checks"
+depends_on = ["format", "lint", "typecheck", "test-unit"]
+parallel = true
+```
+
+```yaml
+repos:
+  - repo: local
+    hooks:
+      - id: uvtx-verify
+        name: Code quality checks
+        entry: uvtx run verify
+        language: system
+        pass_filenames: false
+```
+
+#### Why Local Hooks?
+
+Using `repo: local` with `language: system` is the standard approach because:
+
+1. **Project-specific tasks** - Your checks are defined in `uvtx.toml`, not a remote repository
+2. **Immediate updates** - Uses your installed uvtx version without delays
+3. **Simpler maintenance** - No need to publish/version separate hook repositories
+4. **Faster execution** - No remote repository cloning or environment setup
+
+This keeps your quality checks co-located with your project configuration.
+
 ### Complex Workflows
 
 Combine all features for powerful workflows:
