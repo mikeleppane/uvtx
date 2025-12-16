@@ -21,7 +21,7 @@ from uvtx.config import (
     merge_env,
     resolve_path,
 )
-from uvtx.executor import ExecutionResult, UvCommand, execute_async, execute_sync
+from uvtx.executor import ExecutionResult, OutputQueue, UvCommand, execute_async, execute_sync
 from uvtx.graph import build_pipeline_graph, build_task_graph
 from uvtx.models import OnFailure, OutputMode, TaskConfig, UvrConfig
 from uvtx.parallel import (
@@ -151,7 +151,7 @@ class Runner:
         if task.script:
             script_path = resolve_path(task.script, self.project_root)
             meta = parse_script_metadata(script_path)
-            script_deps = meta.dependencies
+            script_deps = list(meta.dependencies)
             if meta.requires_python and not python_version:
                 # Extract minimum version from requires-python
                 python_version = self._extract_python_version(meta.requires_python)
@@ -745,7 +745,7 @@ class Runner:
 
         async def executor(
             task_name: str,
-            output_queue: asyncio.Queue[tuple[str, str]] | None,
+            output_queue: OutputQueue,
         ) -> ExecutionResult:
             dep_task = self.config.get_task(task_name)
             command = self.build_command(dep_task, task_name, extra_args)
@@ -830,7 +830,7 @@ class Runner:
 
         async def executor(
             task_name: str,
-            output_queue: asyncio.Queue[tuple[str, str]] | None,
+            output_queue: OutputQueue,
         ) -> ExecutionResult:
             task = self.config.get_task(task_name)
 
@@ -993,7 +993,7 @@ class Runner:
 
         # Get common dependencies from config
         common_deps = self.config.dependencies.get("common", [])
-        all_deps = merge_dependencies(meta.dependencies, common_deps)
+        all_deps = merge_dependencies(list(meta.dependencies), common_deps)
 
         # Build environment from config with profile support
         env = build_profile_env(self.config, self.project_root, self.profile)

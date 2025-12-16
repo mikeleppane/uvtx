@@ -10,6 +10,7 @@ from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
+    from collections.abc import Sequence
     from pathlib import Path
 
     from uvtx.runner import Runner
@@ -17,13 +18,13 @@ if TYPE_CHECKING:
 from rich.console import Console
 
 
-@dataclass
+@dataclass(frozen=True)
 class WatchConfig:
     """Configuration for file watching."""
 
-    patterns: list[str] = field(default_factory=lambda: ["**/*.py"])
-    ignore_patterns: list[str] = field(
-        default_factory=lambda: [
+    patterns: tuple[str, ...] = field(default_factory=lambda: ("**/*.py",))
+    ignore_patterns: tuple[str, ...] = field(
+        default_factory=lambda: (
             "**/__pycache__/**",
             "**/.git/**",
             "**/.venv/**",
@@ -33,13 +34,13 @@ class WatchConfig:
             "**/.mypy_cache/**",
             "**/.pytest_cache/**",
             "**/.ruff_cache/**",
-        ]
+        )
     )
     debounce_seconds: float = 0.5
     clear_screen: bool = True
 
 
-def _match_patterns(path: Path, patterns: list[str], root: Path) -> bool:
+def _match_patterns(path: Path, patterns: Sequence[str], root: Path) -> bool:
     """Check if a path matches any of the given glob patterns."""
     rel_path = str(path.relative_to(root))
     for pattern in patterns:
@@ -52,8 +53,8 @@ def _match_patterns(path: Path, patterns: list[str], root: Path) -> bool:
 
 def _get_file_mtimes(
     root: Path,
-    patterns: list[str],
-    ignore_patterns: list[str],
+    patterns: Sequence[str],
+    ignore_patterns: Sequence[str],
 ) -> dict[Path, float]:
     """Get modification times for all matching files."""
     mtimes: dict[Path, float] = {}

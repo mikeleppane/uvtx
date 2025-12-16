@@ -13,24 +13,20 @@ See: https://peps.python.org/pep-0723/
 from __future__ import annotations
 
 import re
-import sys
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from pathlib import Path
 
-if sys.version_info >= (3, 11):
-    import tomllib
-else:
-    import tomli as tomllib
+import tomllib
 
 
-@dataclass
+@dataclass(frozen=True)
 class ScriptMetadata:
     """Parsed metadata from a Python script."""
 
-    dependencies: list[str] = field(default_factory=list)
+    dependencies: tuple[str, ...] = field(default_factory=tuple)
     requires_python: str | None = None
 
 
@@ -119,7 +115,7 @@ def parse_script_metadata_from_string(content: str) -> ScriptMetadata:
         return ScriptMetadata()
 
     return ScriptMetadata(
-        dependencies=data.get("dependencies", []),
+        dependencies=tuple(data.get("dependencies", [])),
         requires_python=data.get("requires-python"),
     )
 

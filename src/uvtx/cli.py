@@ -661,8 +661,8 @@ def watch(
     runner = Runner.from_config_file(config_path, verbose=verbose, profile=profile)
 
     watch_config = WatchConfig(
-        patterns=list(pattern) if pattern else ["**/*.py"],
-        ignore_patterns=list(ignore) if ignore else WatchConfig().ignore_patterns,
+        patterns=tuple(pattern) if pattern else ("**/*.py",),
+        ignore_patterns=tuple(ignore) if ignore else WatchConfig().ignore_patterns,
         debounce_seconds=debounce,
         clear_screen=not no_clear,
     )
@@ -893,12 +893,8 @@ def explain(task_name: str, profile: str | None, config_path: Path | None) -> No
 
 def _load_raw_config(config_path: Path) -> UvrConfig:
     """Load config without resolving inheritance (for showing inheritance chain)."""
-    import sys
 
-    if sys.version_info >= (3, 11):
-        import tomllib
-    else:
-        import tomli as tomllib
+    import tomllib
 
     with config_path.open("rb") as f:
         raw_data = tomllib.load(f)
@@ -1152,7 +1148,7 @@ def graph(
                 continue
             # Merge into main graph
             for node_name, node in partial_graph.nodes.items():
-                task_graph.add_node(node_name, node.config, node.args_override)
+                task_graph.add_node(node_name, node.config, list(node.args_override))
             for from_task, to_tasks in partial_graph.edges.items():
                 for to_task in to_tasks:
                     task_graph.add_edge(from_task, to_task)

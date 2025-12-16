@@ -156,7 +156,7 @@ class TestScriptMetadataCaching:
         warm_time = time.perf_counter() - start
 
         # Verify same metadata returned
-        assert meta1.dependencies == meta2.dependencies == ["requests", "rich"]
+        assert meta1.dependencies == meta2.dependencies == ("requests", "rich")
 
         # Cache hit should be faster (regex + TOML parsing overhead)
         assert warm_time < cold_time * 0.3
@@ -176,7 +176,7 @@ class TestScriptMetadataCaching:
 
         # Parse initial metadata
         meta1 = parse_script_metadata(script_file)
-        assert meta1.dependencies == ["requests"]
+        assert meta1.dependencies == ("requests",)
 
         # Modify file
         time.sleep(0.01)
@@ -192,7 +192,7 @@ class TestScriptMetadataCaching:
 
         # Parse modified metadata - should invalidate cache
         meta2 = parse_script_metadata(script_file)
-        assert meta2.dependencies == ["rich"]
+        assert meta2.dependencies == ("rich",)
 
 
 class TestAlgorithmicComplexity:

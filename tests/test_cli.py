@@ -472,12 +472,9 @@ class TestGetInheritanceChain:
         )
 
         # Load raw config (before inheritance resolution)
-        import sys
 
-        if sys.version_info >= (3, 11):
-            import tomllib
-        else:
-            import tomli as tomllib
+        import tomllib
+
         from uvtx.models import UvrConfig
 
         with config_file.open("rb") as f:
@@ -507,12 +504,9 @@ class TestGetInheritanceChain:
         )
 
         # Load raw config (before inheritance resolution)
-        import sys
 
-        if sys.version_info >= (3, 11):
-            import tomllib
-        else:
-            import tomli as tomllib
+        import tomllib
+
         from uvtx.models import UvrConfig
 
         with config_file.open("rb") as f:

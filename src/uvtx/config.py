@@ -2,18 +2,13 @@
 
 from __future__ import annotations
 
-import sys
+import tomllib
 from pathlib import Path
 from typing import Any
 
 from pydantic import ValidationError
 
-from uvtx.models import TaskConfig, UvrConfig
-
-if sys.version_info >= (3, 11):
-    import tomllib
-else:
-    import tomli as tomllib
+from uvtx.models import DependencyGroups, TaskConfig, UvrConfig
 
 
 class ConfigError(Exception):
@@ -500,7 +495,7 @@ def get_profile_python(
 def get_profile_dependencies(
     config: UvrConfig,
     profile_name: str | None = None,
-) -> dict[str, list[str]]:
+) -> DependencyGroups:
     """Get dependency groups, with profile overrides applied.
 
     Args:

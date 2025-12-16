@@ -30,13 +30,13 @@ class UnknownTaskError(Exception):
         super().__init__(f"Task '{task}' depends on unknown task '{dependency}'")
 
 
-@dataclass
+@dataclass(frozen=True)
 class TaskNode:
     """A node in the task dependency graph."""
 
     name: str
     config: TaskConfig
-    args_override: list[str] = field(default_factory=list)
+    args_override: tuple[str, ...] = field(default_factory=tuple)
 
     def __hash__(self) -> int:
         return hash(self.name)
@@ -59,7 +59,9 @@ class TaskGraph:
     ) -> None:
         """Add a task node to the graph."""
         if name not in self.nodes:
-            self.nodes[name] = TaskNode(name=name, config=config, args_override=args_override or [])
+            self.nodes[name] = TaskNode(
+                name=name, config=config, args_override=tuple(args_override or [])
+            )
 
     def add_edge(self, from_task: str, to_task: str) -> None:
         """Add a dependency edge (from_task depends on to_task)."""

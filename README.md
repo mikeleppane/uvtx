@@ -810,7 +810,7 @@ Scripts can declare their own dependencies:
 #!/usr/bin/env python3
 # /// script
 # dependencies = ["requests", "rich"]
-# requires-python = ">=3.10"
+# requires-python = ">=3.11"
 # ///
 
 import requests

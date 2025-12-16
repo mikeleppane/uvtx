@@ -4,7 +4,7 @@
 
 ## Tech Stack
 
-- **Python 3.10+** with strict type checking (mypy)
+- **Python 3.11+** with strict type checking (mypy)
 - **Pydantic v2** for configuration validation
 - **Click** for CLI interface
 - **Rich** for terminal output

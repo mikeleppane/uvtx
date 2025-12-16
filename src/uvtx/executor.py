@@ -8,15 +8,18 @@ import os
 import shlex
 import subprocess
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING, TextIO
+from typing import TYPE_CHECKING, TextIO, TypeAlias
 
 if TYPE_CHECKING:
     from pathlib import Path
 
 from uvtx.models import OutputMode
 
+# Type alias for output queue used in async execution
+OutputQueue: TypeAlias = asyncio.Queue[tuple[str, str]] | None
 
-@dataclass
+
+@dataclass(frozen=True)
 class ExecutionResult:
     """Result of executing a command."""
 
@@ -230,7 +233,7 @@ def execute_sync(
 async def execute_async(
     command: UvCommand,
     output_mode: OutputMode = OutputMode.BUFFERED,
-    on_stdout: asyncio.Queue[tuple[str, str]] | None = None,
+    on_stdout: OutputQueue = None,
     task_name: str = "",
     timeout: int | None = None,
 ) -> ExecutionResult:
@@ -302,7 +305,7 @@ async def execute_async(
             timeout=timeout,
         )
         return_code = await process.wait()
-    except asyncio.TimeoutError:
+    except TimeoutError:
         process.kill()
         # Give stream readers a chance to finish reading buffered data
         with contextlib.suppress(asyncio.TimeoutError):

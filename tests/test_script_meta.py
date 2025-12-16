@@ -23,7 +23,7 @@ class TestParseScriptMetadata:
 import requests
 """
         meta = parse_script_metadata_from_string(content)
-        assert meta.dependencies == ["requests", "rich"]
+        assert meta.dependencies == ("requests", "rich")
         assert meta.requires_python == ">=3.10"
 
     def test_no_metadata(self) -> None:
@@ -33,7 +33,7 @@ import sys
 print("Hello")
 """
         meta = parse_script_metadata_from_string(content)
-        assert meta.dependencies == []
+        assert meta.dependencies == ()
         assert meta.requires_python is None
 
     def test_empty_dependencies(self) -> None:
@@ -43,7 +43,7 @@ print("Hello")
 # ///
 """
         meta = parse_script_metadata_from_string(content)
-        assert meta.dependencies == []
+        assert meta.dependencies == ()
 
     def test_only_requires_python(self) -> None:
         content = """\
@@ -52,7 +52,7 @@ print("Hello")
 # ///
 """
         meta = parse_script_metadata_from_string(content)
-        assert meta.dependencies == []
+        assert meta.dependencies == ()
         assert meta.requires_python == ">=3.11"
 
     def test_version_specifiers(self) -> None:
@@ -75,7 +75,7 @@ print("Hello")
 # ///
 """
         meta = parse_script_metadata_from_string(content)
-        assert meta.dependencies == []
+        assert meta.dependencies == ()
 
     def test_metadata_in_middle_of_file(self) -> None:
         content = '''\
@@ -89,7 +89,7 @@ print("Hello")
 import click
 '''
         meta = parse_script_metadata_from_string(content)
-        assert meta.dependencies == ["click"]
+        assert meta.dependencies == ("click",)
 
     def test_from_file(self, tmp_path: Path) -> None:
         script = tmp_path / "test.py"
@@ -99,12 +99,12 @@ import click
 # ///
 """)
         meta = parse_script_metadata(script)
-        assert meta.dependencies == ["pytest"]
+        assert meta.dependencies == ("pytest",)
 
     def test_missing_file(self, tmp_path: Path) -> None:
         script = tmp_path / "nonexistent.py"
         meta = parse_script_metadata(script)
-        assert meta.dependencies == []
+        assert meta.dependencies == ()
 
 
 class TestMergeDependencies:

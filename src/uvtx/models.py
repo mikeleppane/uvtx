@@ -4,9 +4,13 @@ from __future__ import annotations
 
 from difflib import get_close_matches
 from enum import Enum
-from typing import Annotated, Any
+from typing import Annotated, Any, TypeAlias, final
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
+
+# Type aliases for improved readability
+DependencyGroups: TypeAlias = dict[str, list[str]]
+EnvValue: TypeAlias = str | list[str]
 
 
 class OnFailure(str, Enum):
@@ -24,19 +28,21 @@ class OutputMode(str, Enum):
     BUFFERED = "buffered"  # Show each task's output after completion
 
 
+@final
 class TaskDependency(BaseModel):
     """A task dependency with optional argument overrides."""
 
-    model_config = ConfigDict(extra="forbid")
+    model_config = ConfigDict(extra="forbid", frozen=True)
 
     task: str
     args: list[str] = Field(default_factory=list)
 
 
+@final
 class ConditionConfig(BaseModel):
     """Conditions for task execution."""
 
-    model_config = ConfigDict(extra="forbid")
+    model_config = ConfigDict(extra="forbid", frozen=True)
 
     # Platform conditions
     platforms: list[str] = Field(default_factory=list)  # ["linux", "macos", "windows"]
@@ -57,10 +63,11 @@ class ConditionConfig(BaseModel):
     files_not_exist: list[str] = Field(default_factory=list)  # Files that must NOT exist
 
 
+@final
 class TaskConfig(BaseModel):
     """Configuration for a single task."""
 
-    model_config = ConfigDict(extra="forbid")
+    model_config = ConfigDict(extra="forbid", frozen=True)
 
     description: str = ""
     script: str | None = None
@@ -152,19 +159,21 @@ class TaskConfig(BaseModel):
         return self
 
 
+@final
 class StageConfig(BaseModel):
     """A stage in a pipeline with tasks to run."""
 
-    model_config = ConfigDict(extra="forbid")
+    model_config = ConfigDict(extra="forbid", frozen=True)
 
     tasks: list[str]
     parallel: bool = False
 
 
+@final
 class PipelineConfig(BaseModel):
     """Configuration for a multi-stage pipeline."""
 
-    model_config = ConfigDict(extra="forbid")
+    model_config = ConfigDict(extra="forbid", frozen=True)
 
     description: str = ""
     stages: list[StageConfig]
@@ -172,23 +181,25 @@ class PipelineConfig(BaseModel):
     output: OutputMode = OutputMode.BUFFERED
 
 
+@final
 class ProfileConfig(BaseModel):
     """Configuration for a profile (dev, ci, prod, etc.)."""
 
-    model_config = ConfigDict(extra="forbid")
+    model_config = ConfigDict(extra="forbid", frozen=True)
 
     env: dict[str, str] = Field(default_factory=dict)  # Additional env vars
-    dependencies: dict[str, list[str]] = Field(default_factory=dict)  # Override dependency groups
+    dependencies: DependencyGroups = Field(default_factory=dict)  # Override dependency groups
     python: str | None = None  # Override Python version
     env_files: list[str] = Field(default_factory=list)  # .env files for this profile
     variables: dict[str, str] = Field(default_factory=dict)  # Profile-specific variable overrides
     runner: str | None = None  # Profile-specific runner override
 
 
+@final
 class ProjectConfig(BaseModel):
     """Project-level configuration."""
 
-    model_config = ConfigDict(extra="forbid")
+    model_config = ConfigDict(extra="forbid", frozen=True)
 
     name: str = ""
     python: str | None = None
@@ -198,16 +209,17 @@ class ProjectConfig(BaseModel):
     runner: str | None = None  # Global command prefix for all tasks
 
 
+@final
 class UvrConfig(BaseModel):
     """Root configuration model for uvt.toml."""
 
-    model_config = ConfigDict(extra="forbid")
+    model_config = ConfigDict(extra="forbid", frozen=True)
 
     project: ProjectConfig = Field(default_factory=ProjectConfig)
     variables: dict[str, str] = Field(default_factory=dict)  # Global variables for templating
-    env: dict[str, Annotated[str | list[str], Field()]] = Field(default_factory=dict)
+    env: dict[str, Annotated[EnvValue, Field()]] = Field(default_factory=dict)
     env_files: list[str] = Field(default_factory=list)  # Global .env files to load
-    dependencies: dict[str, list[str]] = Field(default_factory=dict)
+    dependencies: DependencyGroups = Field(default_factory=dict)
     tasks: dict[str, TaskConfig] = Field(default_factory=dict)
     pipelines: dict[str, PipelineConfig] = Field(default_factory=dict)
     profiles: dict[str, ProfileConfig] = Field(default_factory=dict)

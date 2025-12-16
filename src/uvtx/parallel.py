@@ -17,7 +17,7 @@ if TYPE_CHECKING:
     from collections.abc import Coroutine
     from typing import Any
 
-    from uvtx.executor import ExecutionResult
+    from uvtx.executor import ExecutionResult, OutputQueue
 
 
 class TaskExecutor(Protocol):
@@ -26,7 +26,7 @@ class TaskExecutor(Protocol):
     def __call__(
         self,
         task_name: str,
-        output_queue: asyncio.Queue[tuple[str, str]] | None,
+        output_queue: OutputQueue,
     ) -> Coroutine[Any, Any, ExecutionResult]: ...
 
 
